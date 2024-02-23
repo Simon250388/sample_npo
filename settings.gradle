@@ -1,1 +1,5 @@
 rootProject.name = 'npo'
+include 'repository'
+include 'core'
+include 'app'
+
