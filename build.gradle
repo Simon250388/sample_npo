@@ -1,18 +1,17 @@
 plugins {
-    id 'java'
+    id 'idea'
     id 'org.springframework.boot' version '3.2.0'
-    id 'io.spring.dependency-management' version '1.1.4'
 }
 
 ext {
     jetbrains_annotations_version = "24.1.0"
     junit_jupiter_version = "5.10.2"
     assertj_core_version = "3.24.2"
+    cucumber_version = "7.15.0"
 }
 
 subprojects {
-    apply plugin: 'java'
-    apply plugin: "org.springframework.boot"
+    apply plugin: "java"
     apply plugin: 'io.spring.dependency-management'
 
     repositories {
@@ -25,14 +24,9 @@ subprojects {
         sourceCompatibility = '17'
     }
 
-    configurations {
-        compileOnly {
-            extendsFrom annotationProcessor
-        }
-    }
-
     dependencies {
-        annotationProcessor "org.projectlombok:lombok"
+        compileOnly 'org.projectlombok:lombok:1.18.30'
+        annotationProcessor "org.projectlombok:lombok:1.18.30"
         implementation "org.jetbrains:annotations:$rootProject.ext.jetbrains_annotations_version"
         testImplementation "org.junit.jupiter:junit-jupiter:$rootProject.ext.junit_jupiter_version"
         testImplementation "org.assertj:assertj-core:$rootProject.ext.assertj_core_version"

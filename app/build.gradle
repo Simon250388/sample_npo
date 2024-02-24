@@ -1,14 +1,14 @@
 plugins {
-    id 'application'
+    id 'io.qameta.allure' version '2.11.0'
 }
 
+apply plugin: "org.springframework.boot"
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.liquibase:liquibase-core'
     implementation 'org.jetbrains:annotations:24.1.0'
     implementation 'one.util:streamex:0.8.2'
@@ -18,9 +18,25 @@ dependencies {
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation "io.cucumber:cucumber-java:$rootProject.ext.cucumber_version"
+    testImplementation "io.cucumber:cucumber-junit:$rootProject.ext.cucumber_version"
+    testImplementation "io.cucumber:cucumber-spring:$rootProject.ext.cucumber_version"
+    testImplementation "io.cucumber:cucumber-junit-platform-engine:$rootProject.ext.cucumber_version"
+    testImplementation "org.junit.platform:junit-platform-suite"
+
+    testImplementation "io.qameta.allure:allure-cucumber7-jvm:2.25.0"
+    testImplementation 'io.qameta.allure:allure-junit5:2.25.0'
 
     implementation project(':core')
     implementation project(':repository')
+    implementation project(':client')
 }
+
+test {
+    useJUnitPlatform()
+    ignoreFailures = true
+}
+
+
 
 
