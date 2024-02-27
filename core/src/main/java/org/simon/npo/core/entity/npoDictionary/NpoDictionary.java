@@ -4,5 +4,6 @@ import java.time.Duration;
 import org.jetbrains.annotations.Nullable;
 
 public interface NpoDictionary {
-  @Nullable Duration duration();
+  @Nullable Duration getDuration();
+  String getName();
 }

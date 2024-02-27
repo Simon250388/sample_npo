@@ -80,6 +80,5 @@ public class WithoutDurationUserNpoDto implements UserNpo {
   @Override
   public void onDependencyComplete(UserNpo dependency) {
     this.value.onDependencyComplete(dependency.toDto());
-
   }
 }

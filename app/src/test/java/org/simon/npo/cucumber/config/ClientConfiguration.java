@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ClientConfiguration {
-  private static final String WAREHOUSE_ID = "testWarehouse";
+  private static final String WAREHOUSE_ID = "1";
 
 
   @Bean

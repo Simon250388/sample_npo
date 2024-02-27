@@ -1,16 +1,19 @@
 package org.simon.npo.cucumber.step;
 
-import io.cucumber.java.en.Then;
-import org.junit.jupiter.api.Assertions;
+import io.cucumber.java.en.Given;
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import org.simon.npo.cucumber.AbstractStepsDefinitions;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
+import org.simon.npo.core.service.AppDateTimeProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class CommonSteps extends AbstractStepsDefinitions {
+  @Autowired
+  AppDateTimeProvider appDateTimeProvider;
 
-  @Then("тогда получен код ответа {int}")
-  public void startIndirectActivity(Integer responseCode) {
-    final ResponseEntity apiResponse = (ResponseEntity) getContext().getApiResponse();
-    Assertions.assertEquals(HttpStatusCode.valueOf(responseCode), apiResponse.getStatusCode());
+  @Given("сейчас {cucumberDate}")
+  public void givenNow(LocalDateTime dateTime) {
+    appDateTimeProvider.setClock(Clock.fixed(dateTime.toInstant(ZoneOffset.UTC), ZoneOffset.UTC));
   }
 }

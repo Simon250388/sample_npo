@@ -11,6 +11,7 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.simon.npo.core.service.AppDateTimeProvider;
 import org.simon.npo.core.entity.npoDictionary.ShowTsdNpoDictionary;
 import org.simon.npo.core.entity.npoDictionary.TaskmasterNpoDictionary;
 
@@ -113,7 +114,8 @@ class UserNpoManagerTest {
   }
 
   public UserNpoManager createManager(Collection<UserNpo> existingItems) {
-    return new UserNpoManager(WAREHOUSE_ID, USER_NAME, ACTOR, clock, existingItems);
+    AppDateTimeProvider timeProvider = new AppDateTimeProvider(clock);
+    return new UserNpoManager(WAREHOUSE_ID, USER_NAME, ACTOR, timeProvider, existingItems);
   }
 
   private UserNpo createNotCompletableLunch() {

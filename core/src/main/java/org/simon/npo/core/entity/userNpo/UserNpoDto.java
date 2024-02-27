@@ -168,8 +168,12 @@ public class UserNpoDto {
     }
   }
 
-  private Instant getEndTime() {
+  public Instant getEndTime() {
     return this.intervals.getLast().endTime;
+  }
+
+  public Instant getPlannedEndTime() {
+    return null;
   }
 
   private Duration durationOfCompletableIntervals() {

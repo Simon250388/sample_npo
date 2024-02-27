@@ -7,7 +7,7 @@ import org.simon.npo.core.entity.npoDictionary.ShowTsdNpoDictionary;
 import org.simon.npo.core.entity.npoDictionary.TaskmasterNpoDictionary;
 import org.simon.npo.core.entity.npoDictionary.WithChildNpoDictionary;
 
-class UserNpoFactory {
+public class UserNpoFactory {
 
   static UserNpo create(
       Long warehouseId,
@@ -70,7 +70,7 @@ class UserNpoFactory {
     throw new UnsupportedOperationException("");
   }
 
-  static UserNpo create(UserNpoDto userNpoDto) {
+  public static UserNpo create(UserNpoDto userNpoDto) {
     if (userNpoDto.getNpoDictionary() instanceof ShowTsdNpoDictionary) {
      return new PresetDurationUserNpoDto(userNpoDto);
     } else if (userNpoDto.getNpoDictionary() instanceof WithChildNpoDictionary) {

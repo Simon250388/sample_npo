@@ -1,6 +1,5 @@
 package org.simon.npo.core.entity.userNpo;
 
-import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.NonNull;
 import org.jetbrains.annotations.Nullable;
+import org.simon.npo.core.service.AppDateTimeProvider;
 import org.simon.npo.core.entity.npoDictionary.NpoDictionary;
 import org.simon.npo.core.entity.userNpo.exception.ExistOtherUserNpoException;
 import org.simon.npo.core.entity.userNpo.exception.UserNpoNotFoundException;
@@ -24,7 +24,7 @@ public class UserNpoManager {
   private final Long warehouseId;
   private final String userName;
   private final String actor;
-  private final Clock clock;
+  private final AppDateTimeProvider appDateTimeProvider;
   private Optional<UserNpo> mayBeNotCompletable = Optional.empty();
   private final Set<UserNpo> notStarted = new HashSet<>();
   private final List<UserNpo> items = new ArrayList<>();
@@ -36,13 +36,14 @@ public class UserNpoManager {
       @NonNull Long warehouseId,
       @NonNull String userName,
       @NonNull String actor,
-      @NonNull Clock clock,
+      @NonNull AppDateTimeProvider appDateTimeProvider,
       @NonNull Collection<UserNpo> items) {
     this.warehouseId = warehouseId;
     this.userName = userName;
     this.actor = actor;
-    this.clock = clock;
+    this.appDateTimeProvider = appDateTimeProvider;
     initItems(items);
+    initNotCompletable(appDateTimeProvider.getClock().instant());
   }
 
   public UserNpoManager startActivity(@NonNull NpoDictionary npoDictionary) {
@@ -51,7 +52,7 @@ public class UserNpoManager {
 
   public UserNpoManager startActivity(
       @NonNull NpoDictionary npoDictionary, Instant plannedEndTime) {
-    var now = Instant.now(clock);
+    var now = Instant.now(appDateTimeProvider.getClock());
     return startActivity(npoDictionary, now, plannedEndTime);
   }
 
@@ -74,7 +75,7 @@ public class UserNpoManager {
   }
 
   public UserNpoManager completeActivity(NpoDictionary npoDictionary, String actor) {
-    var now = Instant.now(clock);
+    var now = Instant.now(appDateTimeProvider.getClock());
     return completeActivity(npoDictionary, now, actor);
   }
 
@@ -94,7 +95,7 @@ public class UserNpoManager {
     return this.items;
   }
 
-  private void initItems(Collection<UserNpo> items) {
+  private void initItems( Collection<UserNpo> items) {
     for (var item : items) {
       this.items.add(item);
       this.countStarts.merge(item.getNpoType(), 1, Integer::sum);
@@ -140,5 +141,13 @@ public class UserNpoManager {
       throw new ExistOtherUserNpoException();
     }
     this.items.add(newItem);
+    if (newItem.isStarted(appDateTimeProvider.getClock().instant())) {
+      this.mayBeNotCompletable = Optional.of(newItem);
+    }
+  }
+
+  @Nullable
+  public UserNpo getActive() {
+    return this.mayBeNotCompletable.orElse(null);
   }
 }
