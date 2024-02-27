@@ -1,6 +1,5 @@
 package org.simon.npo.service;
 
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -9,7 +8,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Nullable;
-import org.simon.npo.core.entity.npoDictionary.NpoDictionary;
 import org.simon.npo.core.entity.npoDictionary.NpoDictionaryFactory;
 import org.simon.npo.core.entity.userNpo.UserNpo;
 import org.simon.npo.core.entity.userNpo.UserNpoDto;
@@ -50,8 +48,8 @@ public class UserNpoService {
                           .map(OffsetDateTime::toInstant)
                           .orElse(null);
                   var activities = activitiesByUser.getOrDefault(userName, Collections.emptyList());
-                  return startActivityByUser(
-                      warehouseId, userName, dictionary, plannedEndTime, activities);
+                  var manager = createManager(warehouseId, userName, activities);
+                  return manager.startActivity(dictionary, plannedEndTime);
                 })
             .flatMap(manager -> manager.geItems().stream())
             .map(UserNpo::toDto)
@@ -66,17 +64,12 @@ public class UserNpoService {
         userNpoRepository.findByWarehouseAndUserNames(warehouseId, Set.of(userName)).stream()
             .map(UserNpoFactory::create)
             .toList();
-    var manager = new UserNpoManager(warehouseId, userName, ACTOR, appDateTimeProvider, activities);
+    var manager = createManager(warehouseId, userName, activities);
     return Optional.ofNullable(manager.getActive()).map(UserNpoMapper::mapToResponse).orElse(null);
   }
 
-    private UserNpoManager startActivityByUser(
-            long warehouseId,
-            String userName,
-            NpoDictionary dictionary,
-            Instant plannedEndTime,
-            List<UserNpo> activities) {
-        var manager = new UserNpoManager(warehouseId, userName, ACTOR, appDateTimeProvider, activities);
-        return manager.startActivity(dictionary, plannedEndTime);
-    }
+  private UserNpoManager createManager(
+      long warehouseId, String userName, List<UserNpo> activities) {
+    return new UserNpoManager(warehouseId, userName, ACTOR, appDateTimeProvider, activities);
+  }
 }
