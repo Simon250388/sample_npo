@@ -73,9 +73,7 @@ public class UserNpoManager {
             actor);
 
     var isStarted = newItem.isStarted(appDateTimeProvider.getClock().instant());
-    if (isStarted) {
-      fixExistIntersectionProblems(newItem, startTime);
-    }
+    fixExistIntersectionProblems(newItem, isStarted);
     addNewItemIfNotExist(newItem, isStarted);
     return this;
   }
@@ -120,12 +118,15 @@ public class UserNpoManager {
     }
   }
 
-  private void fixExistIntersectionProblems(UserNpo newItem, Instant startTime) {
+  private void fixExistIntersectionProblems(UserNpo newItem, boolean isStarted) {
+    if (!isStarted) {
+      return;
+    }
     if (this.mayBeNotCompletable.isPresent()) {
       var notCompletable = this.mayBeNotCompletable.get();
       try {
-        notCompletable.complete(startTime, actor);
-      } catch (IllegalArgumentException illegalArgumentException) {
+        notCompletable.complete(newItem, actor);
+      } catch (UnsupportedOperationException unsupportedOperationException) {
         try {
           notCompletable.pause(newItem);
         } catch (UnsupportedOperationException notCompletableException) {

@@ -36,6 +36,14 @@ public class WithoutDurationUserNpoDto implements UserNpo {
   }
 
   @Override
+  public void complete(UserNpo userNpo, @NotNull String assigner) {
+    if (!userNpo.getClass().isAssignableFrom(WithoutDurationUserNpoDto.class)) {
+      throw new UnsupportedOperationException();
+    }
+    this.value.complete(userNpo.toDto().getStartTime(), assigner);
+  }
+
+  @Override
   public boolean isCompletable(Instant now) {
     return this.value.isCompletable(now);
   }

@@ -48,10 +48,19 @@ public class PresetDurationUserNpoDto implements UserNpo {
   @Override
   public void complete(@NonNull Instant endTime, @NonNull String assigner) {
     if (!this.value.getUserName().equalsIgnoreCase(assigner)) {
-      throw new IllegalArgumentException(
+      throw new UnsupportedOperationException(
           "User npo can complete only at expected end time or only the one who was started");
     }
     this.value.complete(endTime, assigner);
+  }
+
+  @Override
+  public void complete(@NonNull UserNpo userNpo, @NonNull String assigner) {
+    if (!this.value.getUserName().equalsIgnoreCase(assigner)) {
+      throw new UnsupportedOperationException(
+              "User npo can complete only at expected end time or only the one who was started");
+    }
+    this.value.complete(userNpo.toDto().getStartTime(), assigner);
   }
 
   @Override

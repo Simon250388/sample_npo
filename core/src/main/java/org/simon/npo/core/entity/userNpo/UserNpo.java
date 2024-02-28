@@ -6,6 +6,7 @@ import org.simon.npo.core.entity.npoDictionary.NpoDictionary;
 
 public interface UserNpo {
   void complete(Instant endTime, @NotNull String assigner);
+  void complete(UserNpo userNpo, @NotNull String assigner);
 
   boolean isCompletable(Instant now);
 
