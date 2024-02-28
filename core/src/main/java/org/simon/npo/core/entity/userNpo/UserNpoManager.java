@@ -43,7 +43,6 @@ public class UserNpoManager {
     this.actor = actor;
     this.appDateTimeProvider = appDateTimeProvider;
     initItems(items);
-    initNotCompletable(appDateTimeProvider.getClock().instant());
   }
 
   public UserNpoManager startActivity(@NonNull NpoDictionary npoDictionary) {
@@ -52,13 +51,16 @@ public class UserNpoManager {
 
   public UserNpoManager startActivity(
       @NonNull NpoDictionary npoDictionary, Instant plannedEndTime) {
-    var now = Instant.now(appDateTimeProvider.getClock());
-    return startActivity(npoDictionary, now, plannedEndTime);
+    return startActivity(npoDictionary, null, plannedEndTime);
   }
 
   public UserNpoManager startActivity(
-      NpoDictionary npoDictionary, Instant startTime, @Nullable Instant plannedEndTime) {
-    initNotCompletable(startTime);
+      NpoDictionary npoDictionary,
+      @Nullable Instant mayBeStartTime,
+      @Nullable Instant plannedEndTime) {
+    var startTime =
+        Optional.ofNullable(mayBeStartTime).orElse(appDateTimeProvider.getClock().instant());
+    initNotCompletable();
     addValidateError(npoDictionary, startTime, plannedEndTime);
     var newItem =
         UserNpoFactory.create(
@@ -69,8 +71,12 @@ public class UserNpoManager {
             plannedEndTime,
             Collections.emptySet(),
             actor);
-    fixExistIntersectionProblems(newItem);
-    addNewItemIfNotExist(newItem);
+
+    var isStarted = newItem.isStarted(appDateTimeProvider.getClock().instant());
+    if (isStarted) {
+      fixExistIntersectionProblems(newItem, startTime);
+    }
+    addNewItemIfNotExist(newItem, isStarted);
     return this;
   }
 
@@ -79,12 +85,13 @@ public class UserNpoManager {
     return completeActivity(npoDictionary, now, actor);
   }
 
-  public UserNpoManager completeActivity(NpoDictionary npoDictionary, Instant endTime, String actor) {
-    initNotCompletable(endTime);
+  public UserNpoManager completeActivity(
+      NpoDictionary npoDictionary, Instant endTime, String actor) {
+    initNotCompletable();
     var notCompletable =
-            this.mayBeNotCompletable
-                    .filter(userNpo -> userNpo.getNpoType().equals(npoDictionary))
-                    .orElseThrow(UserNpoNotFoundException::new);
+        this.mayBeNotCompletable
+            .filter(userNpo -> userNpo.getNpoType().equals(npoDictionary))
+            .orElseThrow(UserNpoNotFoundException::new);
     notCompletable.complete(endTime, actor);
     this.mayBeNotCompletable = Optional.empty();
     this.notStarted.forEach(item -> item.onDependencyComplete(notCompletable));
@@ -95,16 +102,17 @@ public class UserNpoManager {
     return this.items;
   }
 
-  private void initItems( Collection<UserNpo> items) {
+  private void initItems(Collection<UserNpo> items) {
     for (var item : items) {
       this.items.add(item);
       this.countStarts.merge(item.getNpoType(), 1, Integer::sum);
     }
   }
 
-  private void initNotCompletable(Instant now) {
+  private void initNotCompletable() {
+    var now = appDateTimeProvider.getClock().instant();
     for (var item : items) {
-      if (!item.isStarted(now)) {
+      if (!item.isCompletable(now) && !item.isStarted(now)) {
         this.notStarted.add(item);
       } else if (!item.isCompletable(now)) {
         this.mayBeNotCompletable = Optional.of(item);
@@ -112,13 +120,19 @@ public class UserNpoManager {
     }
   }
 
-  private void fixExistIntersectionProblems(UserNpo newItem) {
-    if (this.mayBeNotCompletable.isPresent())
+  private void fixExistIntersectionProblems(UserNpo newItem, Instant startTime) {
+    if (this.mayBeNotCompletable.isPresent()) {
+      var notCompletable = this.mayBeNotCompletable.get();
       try {
-        this.mayBeNotCompletable.get().pause(newItem);
-      } catch (UnsupportedOperationException notCompletableException) {
-        newItem.delayStart(this.mayBeNotCompletable.get());
+        notCompletable.complete(startTime, actor);
+      } catch (IllegalArgumentException illegalArgumentException) {
+        try {
+          notCompletable.pause(newItem);
+        } catch (UnsupportedOperationException notCompletableException) {
+          newItem.delayStart(notCompletable);
+        }
       }
+    }
   }
 
   private void addValidateError(
@@ -136,18 +150,19 @@ public class UserNpoManager {
     }
   }
 
-  private void addNewItemIfNotExist(UserNpo newItem) {
+  private void addNewItemIfNotExist(UserNpo newItem, boolean isStarted) {
     if (this.items.contains(newItem)) {
       throw new ExistOtherUserNpoException();
     }
     this.items.add(newItem);
-    if (newItem.isStarted(appDateTimeProvider.getClock().instant())) {
+    if (isStarted) {
       this.mayBeNotCompletable = Optional.of(newItem);
     }
   }
 
   @Nullable
   public UserNpo getActive() {
+    initNotCompletable();
     return this.mayBeNotCompletable.orElse(null);
   }
 }

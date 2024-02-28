@@ -25,10 +25,12 @@ class UserNpoService(
         val dictionary = NpoDictionaryFactory.create(npoDictionaryService.getByName(request!!.activity))
         val userNames = request.userNames
         val plannedEndTime = request.plannedEndTime?.toInstant()
+        val startTime = request.startTime?.toInstant()
         val existingRecords = userNpoRepository.findByWarehouseAndUserNames(warehouseId, userNames)
             .groupBy({ it.userName }, { UserNpoFactory.create(it) })
-        userNames.map { createManager(warehouseId, it, existingRecords[it] ?: emptyList()) }
-            .map { it.startActivity(dictionary, plannedEndTime) }
+        userNames
+            .map { createManager(warehouseId, it, existingRecords[it] ?: emptyList()) }
+            .map { it.startActivity(dictionary, startTime, plannedEndTime) }
             .flatMap { it.geItems() }
             .map { it.toDto() }
             .let { userNpoRepository.save(warehouseId, it) }
