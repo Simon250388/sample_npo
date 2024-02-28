@@ -53,7 +53,7 @@ class UserNpoSteps(private val client: NpoClient) : AbstractStepsDefinitions() {
     fun verifyNpoActivityActive(userName: String, npoType: String) {
         val response = client.isActiveNpoActivityActive(userName)
         Assertions.assertEquals(HttpStatusCode.valueOf(200), response.statusCode)
-        Assertions.assertEquals(npoType, Objects.requireNonNull(response.body).activity)
+        Assertions.assertEquals(npoType, response.body?.activity)
     }
 
     @Then("у пользователя {string} нет действующих нпо")
