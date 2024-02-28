@@ -1,75 +1,47 @@
-package org.simon.npo.service;
+package org.simon.npo.service
 
-import java.time.OffsetDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.Nullable;
-import org.simon.npo.core.entity.npoDictionary.NpoDictionaryFactory;
-import org.simon.npo.core.entity.userNpo.UserNpo;
-import org.simon.npo.core.entity.userNpo.UserNpoDto;
-import org.simon.npo.core.entity.userNpo.UserNpoFactory;
-import org.simon.npo.core.entity.userNpo.UserNpoManager;
-import org.simon.npo.core.reposity.UserNpoRepository;
-import org.simon.npo.core.service.AppDateTimeProvider;
-import org.simon.npo.dto.UserNpoResponse;
-import org.simon.npo.dto.UserNpoStartRequest;
-import org.simon.npo.mapper.UserNpoMapper;
-import org.springframework.stereotype.Service;
+import org.simon.npo.core.entity.npoDictionary.NpoDictionaryFactory
+import org.simon.npo.core.entity.userNpo.UserNpo
+import org.simon.npo.core.entity.userNpo.UserNpoFactory
+import org.simon.npo.core.entity.userNpo.UserNpoManager
+import org.simon.npo.core.reposity.UserNpoRepository
+import org.simon.npo.core.service.AppDateTimeProvider
+import org.simon.npo.dto.UserNpoResponse
+import org.simon.npo.dto.UserNpoStartRequest
+import org.simon.npo.mapper.toResponse
+import org.springframework.stereotype.Service
+
+
+const val ACTOR = "SYSTEM"
 
 @Service
-@RequiredArgsConstructor
-public class UserNpoService {
-  private static final String ACTOR = "SYSTEM";
-  private final AppDateTimeProvider appDateTimeProvider;
-  private final NpoDictionaryService npoDictionaryService;
-  private final UserNpoRepository userNpoRepository;
+class UserNpoService(
+    private val appDateTimeProvider: AppDateTimeProvider,
+    private val npoDictionaryService: NpoDictionaryService,
+    private val userNpoRepository: UserNpoRepository
+) {
+    fun start(warehouse: String, request: UserNpoStartRequest?) {
+        val warehouseId = warehouse.toLong()
+        val dictionary = NpoDictionaryFactory.create(npoDictionaryService.getByName(request!!.activity))
+        val userNames = request.userNames
+        val plannedEndTime = request.plannedEndTime?.toInstant()
+        val existingRecords = userNpoRepository.findByWarehouseAndUserNames(warehouseId, userNames)
+            .groupBy({ it.userName }, { UserNpoFactory.create(it) })
+        userNames.map { createManager(warehouseId, it, existingRecords[it] ?: emptyList()) }
+            .map { it.startActivity(dictionary, plannedEndTime) }
+            .flatMap { it.geItems() }
+            .map { it.toDto() }
+            .let { userNpoRepository.save(warehouseId, it) }
+    }
 
-  public void start(String warehouse, UserNpoStartRequest request) {
-    var warehouseId = Long.parseLong(warehouse);
-    var dictionary =
-        NpoDictionaryFactory.create(npoDictionaryService.getByName(request.getActivity()));
-    var userNames = request.getUserNames();
-    var activitiesByUser =
-        userNpoRepository.findByWarehouseAndUserNames(warehouseId, userNames).stream()
-            .collect(
-                Collectors.groupingBy(
-                    UserNpoDto::getUserName,
-                    Collectors.mapping(UserNpoFactory::create, Collectors.toList())));
-    var records =
-        userNames.stream()
-            .map(
-                userName -> {
-                  var plannedEndTime =
-                      Optional.ofNullable(request.getPlannedEndTime())
-                          .map(OffsetDateTime::toInstant)
-                          .orElse(null);
-                  var activities = activitiesByUser.getOrDefault(userName, Collections.emptyList());
-                  var manager = createManager(warehouseId, userName, activities);
-                  return manager.startActivity(dictionary, plannedEndTime);
-                })
-            .flatMap(manager -> manager.geItems().stream())
-            .map(UserNpo::toDto)
-            .toList();
-    userNpoRepository.save(warehouseId, records);
-  }
+    fun getActive(warehouse: String, userName: String): UserNpoResponse? =
+        warehouse.toLong()
+            .let { mapOf(it to userNpoRepository.findByWarehouseAndUserNames(it, setOf(userName))) }
+            .mapValues { entry -> entry.value.map { UserNpoFactory.create(it) } }
+            .map { createManager(it.key, userName, it.value) }
+            .map { it.active }
+            .firstNotNullOfOrNull { it?.toResponse() }
 
-  @Nullable
-  public UserNpoResponse getActive(String warehouse, String userName) {
-    var warehouseId = Long.parseLong(warehouse);
-    var activities =
-        userNpoRepository.findByWarehouseAndUserNames(warehouseId, Set.of(userName)).stream()
-            .map(UserNpoFactory::create)
-            .toList();
-    var manager = createManager(warehouseId, userName, activities);
-    return Optional.ofNullable(manager.getActive()).map(UserNpoMapper::mapToResponse).orElse(null);
-  }
-
-  private UserNpoManager createManager(
-      long warehouseId, String userName, List<UserNpo> activities) {
-    return new UserNpoManager(warehouseId, userName, ACTOR, appDateTimeProvider, activities);
-  }
+    private fun createManager(warehouseId: Long, userName: String, activities: List<UserNpo>): UserNpoManager =
+        UserNpoManager(warehouseId, userName, ACTOR, appDateTimeProvider, activities)
 }

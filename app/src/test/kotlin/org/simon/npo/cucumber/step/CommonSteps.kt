@@ -1,19 +1,17 @@
-package org.simon.npo.cucumber.step;
+package org.simon.npo.cucumber.step
 
-import io.cucumber.java.en.Given;
-import java.time.Clock;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import org.simon.npo.cucumber.AbstractStepsDefinitions;
-import org.simon.npo.core.service.AppDateTimeProvider;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.cucumber.java.en.Given
+import org.simon.npo.core.service.AppDateTimeProvider
+import org.simon.npo.cucumber.AbstractStepsDefinitions
+import java.time.Clock
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
-public class CommonSteps extends AbstractStepsDefinitions {
-  @Autowired
-  AppDateTimeProvider appDateTimeProvider;
-
-  @Given("сейчас {cucumberDate}")
-  public void givenNow(LocalDateTime dateTime) {
-    appDateTimeProvider.setClock(Clock.fixed(dateTime.toInstant(ZoneOffset.UTC), ZoneOffset.UTC));
-  }
+class CommonSteps(private val appDateTimeProvider: AppDateTimeProvider) : AbstractStepsDefinitions() {
+    @Given("сейчас {cucumberDate}")
+    fun givenNow(dateTime: LocalDateTime): Unit =
+        run {
+            Clock.fixed(dateTime.toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+                .also { appDateTimeProvider.clock = it }
+        }
 }

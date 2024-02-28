@@ -1,15 +1,14 @@
-package org.simon.npo;
+package org.simon.npo
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+import org.springframework.boot.runApplication
 
 @SpringBootApplication
-@EnableAutoConfiguration(
-        exclude = DataSourceAutoConfiguration.class)
-public class NpoApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(NpoApplication.class, args);
-    }
+@EnableAutoConfiguration(exclude = [DataSourceAutoConfiguration::class])
+class NpoApplication
+
+fun main(args: Array<String>) {
+    runApplication<NpoApplication>(*args)
 }

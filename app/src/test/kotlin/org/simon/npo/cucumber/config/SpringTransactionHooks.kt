@@ -1,38 +1,40 @@
-package org.simon.npo.cucumber.config;
+package org.simon.npo.cucumber.config
+
+import io.cucumber.java.After
+import io.cucumber.java.Before
+import org.simon.npo.db.inmemory.InMemoryUserNpoRepository
+import org.springframework.beans.BeansException
+import org.springframework.beans.factory.BeanFactory
+import org.springframework.beans.factory.BeanFactoryAware
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.TransactionStatus
 
 
-import io.cucumber.java.After;
-import io.cucumber.java.Before;
-import org.simon.npo.db.inmemory.InMemoryUserNpoRepository;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.BeanFactoryAware;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionStatus;
+class SpringTransactionHooks : BeanFactoryAware {
+    private var beanFactory: BeanFactory? = null
+    private val transactionStatus: TransactionStatus? = null
 
-public class SpringTransactionHooks implements BeanFactoryAware {
-    private BeanFactory beanFactory;
-    private TransactionStatus transactionStatus;
-
-    @Override
-    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
-        this.beanFactory = beanFactory;
+    @Throws(BeansException::class)
+    override fun setBeanFactory(beanFactory: BeanFactory) {
+        this.beanFactory = beanFactory
     }
 
     @Before(value = "@txn", order = 100)
-    public void startTransaction() {
-        final InMemoryUserNpoRepository userNpoRepository = beanFactory.getBean(InMemoryUserNpoRepository.class);
-        userNpoRepository.clear();
-//        transactionStatus = obtainPlatformTransactionManager()
+    fun startTransaction() {
+        val userNpoRepository = beanFactory!!.getBean(
+            InMemoryUserNpoRepository::class.java
+        )
+        userNpoRepository.clear()
+        //        transactionStatus = obtainPlatformTransactionManager()
 //                .getTransaction(new DefaultTransactionDefinition());
     }
 
-    public PlatformTransactionManager obtainPlatformTransactionManager() {
-        return beanFactory.getBean(PlatformTransactionManager.class);
+    fun obtainPlatformTransactionManager(): PlatformTransactionManager {
+        return beanFactory!!.getBean(PlatformTransactionManager::class.java)
     }
 
     @After(value = "@txn", order = 100)
-    public void rollBackTransaction() {
+    fun rollBackTransaction() {
 //        obtainPlatformTransactionManager()
 //                .rollback(transactionStatus);
     }

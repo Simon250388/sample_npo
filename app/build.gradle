@@ -1,8 +1,16 @@
 plugins {
     id 'io.qameta.allure' version '2.11.0'
+    id 'org.jetbrains.kotlin.jvm' version '1.9.22'
+    id 'org.jetbrains.kotlin.plugin.spring' version '1.9.22'
 }
 
 apply plugin: "org.springframework.boot"
+apply plugin: 'kotlin'
+
+ext {
+    kotlin_version = '1.9.22'
+}
+
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -12,6 +20,7 @@ dependencies {
     implementation 'org.liquibase:liquibase-core'
     implementation 'org.jetbrains:annotations:24.1.0'
     implementation 'one.util:streamex:0.8.2'
+    implementation 'org.jetbrains.kotlin:kotlin-reflect'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.h2database:h2'
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
@@ -32,9 +41,17 @@ dependencies {
     implementation project(':client')
 }
 
+
 test {
     useJUnitPlatform()
     ignoreFailures = true
+}
+repositories {
+    mavenCentral()
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 

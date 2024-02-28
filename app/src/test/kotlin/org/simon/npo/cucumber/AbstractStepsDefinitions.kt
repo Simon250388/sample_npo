@@ -1,9 +1,9 @@
-package org.simon.npo.cucumber;
+package org.simon.npo.cucumber
 
-public class AbstractStepsDefinitions {
-    private static final ThreadLocal<NpoTestContext> context = ThreadLocal.withInitial(NpoTestContext::new);
+open class AbstractStepsDefinitions {
+    fun getContext(): NpoTestContext = context.get()
 
-    public NpoTestContext getContext() {
-        return context.get();
+    companion object {
+        private val context: ThreadLocal<NpoTestContext> = ThreadLocal.withInitial { NpoTestContext() }
     }
 }

@@ -1,19 +1,15 @@
-package org.simon.npo.config;
+package org.simon.npo.config
 
-import java.time.Clock;
-import org.simon.npo.core.service.AppDateTimeProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.simon.npo.core.service.AppDateTimeProvider
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+import java.time.Clock
 
 @Configuration
-public class CommonAppConfiguration {
-  @Bean
-  Clock clock() {
-    return Clock.systemUTC();
-  }
+class CommonAppConfiguration {
+    @Bean
+    fun clock(): Clock = Clock.systemUTC()
 
-  @Bean
-  AppDateTimeProvider appDateTimeProvider(Clock clock) {
-    return new AppDateTimeProvider(clock);
-  }
+    @Bean
+    fun appDateTimeProvider(clock: Clock): AppDateTimeProvider = AppDateTimeProvider(clock)
 }

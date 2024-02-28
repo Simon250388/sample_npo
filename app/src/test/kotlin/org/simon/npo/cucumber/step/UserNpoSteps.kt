@@ -1,78 +1,72 @@
-package org.simon.npo.cucumber.step;
+package org.simon.npo.cucumber.step
 
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.Objects;
-import java.util.Set;
-import org.junit.jupiter.api.Assertions;
-import org.simon.npo.NpoClient;
-import org.simon.npo.cucumber.AbstractStepsDefinitions;
-import org.simon.npo.dto.UserNpoStartRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
+import io.cucumber.java.en.Then
+import io.cucumber.java.en.When
+import org.junit.jupiter.api.Assertions
+import org.simon.npo.NpoClient
+import org.simon.npo.cucumber.AbstractStepsDefinitions
+import org.simon.npo.dto.UserNpoStartRequest
+import org.springframework.http.HttpStatusCode
+import org.springframework.http.ResponseEntity
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
+import java.util.*
 
-public class UserNpoSteps extends AbstractStepsDefinitions {
-  @Autowired NpoClient client;
-
-  @When("пользователь {string} начинает нпо {string}")
-  public void startIndirectActivity(String userName, String npoType) {
-    var response =
+class UserNpoSteps(private val client: NpoClient) : AbstractStepsDefinitions() {
+    @When("пользователь {string} начинает нпо {string}")
+    fun startIndirectActivity(userName: String, npoType: String) =
         client.startNpoActivity(
             UserNpoStartRequest.builder()
                 .withActivity(npoType)
-                .withUserNames(Set.of(userName))
-                .build());
-    verifyResponse(response);
-  }
+                .withUserNames(setOf(userName))
+                .build()
+        ).let { verifyResponse(it) }
 
-  @When("пользователю {string} назначают нпо {string} с текущего момента до {cucumberDate}")
-  public void whenAssignerStartUserActivityFromNowToPlannedMoment(
-      String userName, String npoType, LocalDateTime plannedEndTime) {
-    var response =
-        client.startNpoActivity(
-            UserNpoStartRequest.builder()
-                .withActivity(npoType)
-                .withUserNames(Set.of(userName))
-                .withPlannedEndTime(OffsetDateTime.of(plannedEndTime, ZoneOffset.UTC))
-                .build());
-    verifyResponse(response);
-  }
 
-  @When("пользователю {string} назначают нпо {string} с {cucumberDate} до {cucumberDate}")
-  public void whenAssignerStartUserActivityToPlannedMoment(
-      String userName, String npoType, LocalDateTime startTime, LocalDateTime plannedEndTime) {
-    var response =
-        client.startNpoActivity(
-            UserNpoStartRequest.builder()
-                .withActivity(npoType)
-                .withUserNames(Set.of(userName))
-                .withPlannedEndTime(OffsetDateTime.of(plannedEndTime, ZoneOffset.UTC))
-                .withStartTime(OffsetDateTime.of(startTime, ZoneOffset.UTC))
-                .build());
-    verifyResponse(response);
-  }
+    @When("пользователю {string} назначают нпо {string} с текущего момента до {cucumberDate}")
+    fun whenAssignerStartUserActivityFromNowToPlannedMoment(
+        userName: String, npoType: String, plannedEndTime: LocalDateTime
+    ) = client.startNpoActivity(
+        UserNpoStartRequest.builder()
+            .withActivity(npoType)
+            .withUserNames(setOf(userName))
+            .withPlannedEndTime(OffsetDateTime.of(plannedEndTime, ZoneOffset.UTC))
+            .build()
+    ).let { verifyResponse(it) }
 
-  @Then("у пользователя {string} есть действующее нпо {string}")
-  public void verifyNpoActivityActive(String userName, String npoType) {
-    var response = client.isActiveNpoActivityActive(userName);
-    Assertions.assertEquals(HttpStatusCode.valueOf(200), response.getStatusCode());
-    Assertions.assertEquals(npoType, Objects.requireNonNull(response.getBody()).getActivity());
-  }
 
-  @Then("у пользователя {string} нет действующих нпо")
-  public void verifyNoActivityActive(String userName) {
-    var response = client.isActiveNpoActivityActive(userName);
-    Assertions.assertEquals(HttpStatusCode.valueOf(204), response.getStatusCode());
-  }
+    @When("пользователю {string} назначают нпо {string} с {cucumberDate} до {cucumberDate}")
+    fun whenAssignerStartUserActivityToPlannedMoment(
+        userName: String, npoType: String, startTime: LocalDateTime, plannedEndTime: LocalDateTime
+    ) = client.startNpoActivity(
+        UserNpoStartRequest.builder()
+            .withActivity(npoType)
+            .withUserNames(setOf(userName))
+            .withPlannedEndTime(OffsetDateTime.of(plannedEndTime, ZoneOffset.UTC))
+            .withStartTime(OffsetDateTime.of(startTime, ZoneOffset.UTC))
+            .build()
+    ).let { verifyResponse(it) }
 
-  private void verifyResponse(ResponseEntity<Void> npoStartResponse) {
-    Assertions.assertTrue(
-        npoStartResponse.getStatusCode().is2xxSuccessful(),
-        "Waiting response code is 2xx, but was %s".formatted(npoStartResponse.getStatusCode()));
-    getContext().putApiResponse(npoStartResponse);
-  }
+
+    @Then("у пользователя {string} есть действующее нпо {string}")
+    fun verifyNpoActivityActive(userName: String, npoType: String) {
+        val response = client.isActiveNpoActivityActive(userName)
+        Assertions.assertEquals(HttpStatusCode.valueOf(200), response.statusCode)
+        Assertions.assertEquals(npoType, Objects.requireNonNull(response.body).activity)
+    }
+
+    @Then("у пользователя {string} нет действующих нпо")
+    fun verifyNoActivityActive(userName: String) {
+        val response = client.isActiveNpoActivityActive(userName)
+        Assertions.assertEquals(HttpStatusCode.valueOf(204), response.statusCode)
+    }
+
+    private fun verifyResponse(npoStartResponse: ResponseEntity<Void>) {
+        Assertions.assertTrue(
+            npoStartResponse.statusCode.is2xxSuccessful,
+            "Waiting response code is 2xx, but was ${npoStartResponse.statusCode}"
+        )
+        getContext().putApiResponse(npoStartResponse)
+    }
 }

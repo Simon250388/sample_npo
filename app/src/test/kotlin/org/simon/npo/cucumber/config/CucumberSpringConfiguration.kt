@@ -1,9 +1,9 @@
-package org.simon.npo.cucumber.config;
+package org.simon.npo.cucumber.config
 
-import io.cucumber.spring.CucumberContextConfiguration;
-import org.simon.npo.NpoApplication;
-import org.springframework.boot.test.context.SpringBootTest;
+import io.cucumber.spring.CucumberContextConfiguration
+import org.simon.npo.NpoApplication
+import org.springframework.boot.test.context.SpringBootTest
 
 @CucumberContextConfiguration
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = NpoApplication.class)
-public class CucumberSpringConfiguration {}
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = [NpoApplication::class])
+class CucumberSpringConfiguration

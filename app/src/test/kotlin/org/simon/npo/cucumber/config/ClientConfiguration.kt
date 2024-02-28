@@ -1,18 +1,17 @@
-package org.simon.npo.cucumber.config;
+package org.simon.npo.cucumber.config
 
-import org.simon.npo.NpoClient;
-import org.simon.npo.NpoClientImpl;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.simon.npo.NpoClient
+import org.simon.npo.NpoClientImpl
+import org.springframework.boot.test.web.client.TestRestTemplate
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 
 @Configuration
-public class ClientConfiguration {
-  private static final String WAREHOUSE_ID = "1";
+class ClientConfiguration {
+    @Bean
+    fun npoClient(testRestTemplate: TestRestTemplate): NpoClient =
+        NpoClientImpl(WAREHOUSE_ID, testRestTemplate.restTemplate)
 
-
-  @Bean
-  NpoClient npoClient(TestRestTemplate testRestTemplate) {
-    return new NpoClientImpl(WAREHOUSE_ID, testRestTemplate.getRestTemplate());
-  }
 }
+
+const val WAREHOUSE_ID = "1"

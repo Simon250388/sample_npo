@@ -1,26 +1,17 @@
-package org.simon.npo.mapper;
+package org.simon.npo.mapper
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.Optional;
-import org.simon.npo.core.entity.userNpo.UserNpo;
-import org.simon.npo.dto.UserNpoResponse;
+import org.simon.npo.core.entity.userNpo.UserNpo
+import org.simon.npo.dto.UserNpoResponse
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
-public class UserNpoMapper {
-    public static UserNpoResponse mapToResponse(UserNpo userNpo) {
-        var userNpoValue = userNpo.toDto();
-        return UserNpoResponse.builder()
-                .withUserName(userNpoValue.getUserName())
-                .withActivity(userNpoValue.getNpoDictionary().getName())
-                .withStartTime(OffsetDateTime.ofInstant(userNpoValue.getStartTime(), ZoneOffset.UTC))
-                .withEndTime(
-                        Optional.ofNullable(userNpoValue.getEndTime())
-                                .map(value -> OffsetDateTime.ofInstant(value, ZoneOffset.UTC))
-                                .orElse(null))
-                .withPlannedEndTime(
-                        Optional.ofNullable(userNpoValue.getPlannedEndTime())
-                                .map(value -> OffsetDateTime.ofInstant(value, ZoneOffset.UTC))
-                                .orElse(null))
-                .build();
-    }
+fun UserNpo.toResponse(): UserNpoResponse {
+    val userNpoValue = toDto()
+    return UserNpoResponse.builder()
+        .withUserName(userNpoValue.userName)
+        .withActivity(userNpoValue.npoDictionary.name)
+        .withStartTime(OffsetDateTime.ofInstant(userNpoValue.startTime, ZoneOffset.UTC))
+        .withEndTime(userNpoValue.endTime?.let { OffsetDateTime.ofInstant(it, ZoneOffset.UTC) })
+        .withPlannedEndTime(userNpoValue.plannedEndTime?.let { OffsetDateTime.ofInstant(it, ZoneOffset.UTC) })
+        .build()
 }

@@ -1,17 +1,15 @@
-package org.simon.npo.cucumber;
+package org.simon.npo.cucumber
 
-import java.util.HashMap;
-import java.util.Map;
+import org.springframework.http.ResponseEntity
 
-public class NpoTestContext {
-  private final Map<String, Object> map = new HashMap<>();
-  private static final String API_RESPONSE_KEY = "API_RESPONSE";
+@Suppress("UNCHECKED_CAST")
+class NpoTestContext(
+    private val map: MutableMap<String, Any> = HashMap()) {
+    fun putApiResponse(voidResponseEntity: Any) {
+        map[API_RESPONSE_KEY] = voidResponseEntity
+    }
 
-  public void putApiResponse(Object voidResponseEntity) {
-    map.put(API_RESPONSE_KEY, voidResponseEntity);
-  }
-
-  public Object getApiResponse() {
-    return map.get(API_RESPONSE_KEY);
-  }
+    fun <T> getApiResponse(): ResponseEntity<T> = map[API_RESPONSE_KEY] as ResponseEntity<T>
 }
+
+const val  API_RESPONSE_KEY = "API_RESPONSE"
